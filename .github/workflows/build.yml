@@ -11,10 +11,63 @@ env:
   IMAGE_TAR: ${{ github.sha }}.tar
 
 jobs:
+  # Detect Secret
+  detect-secrets:
+    name: Detect Secret
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Install detect-secrets
+        run: pip install detect-secrets
+
+      - name: Verify baseline and setup
+        run: |
+          if [ ! -f ".secrets.baseline" ]; then
+            echo "The file .secret.baseline does not exist"
+            echo "Make sure to create and upload this first... existing"
+            exit 1
+          fi
+          mkdir -p reports
+
+      # compare latest commit file
+      - name: Run detect-secrets scan
+        run: | 
+          COMMIT_BEFORE_SHA=$(git rev-parse HEAD~1 2>/dev/null || echo ${{ github.sha }})
+          echo "Scanning changed files between ${COMMIT_BEFORE_SHA} and ${{ github.sha }}..."
+
+          git diff --name-only --diff-filter=d $COMMIT_BEFORE_SHA ${{ github.sha }} | \
+          xargs detect-secrets-hook --baseline .secrets.baseline > reports/detect-secrets-report.txt
+
+      - name: Reporting
+        if: always()
+        run: |
+          if [ -f "reports/detect-secrets-reports.txt"]; then
+            cat reports/detect-secrets-reports.txt
+          fi
+
+      - name: Upload Detect-Secrets Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: detect-secrets-report
+          path: reports/detect-secrets-report.txt
+
+  # Build Image
   build:
     name: Build artifact
     runs-on: ubuntu-latest
-
+    needs: [detect-secrets]
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
