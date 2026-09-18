@@ -74,10 +74,9 @@ jobs:
       - name: Run Hadolint and Generate Reports
         run: |
           mkdir -p reports
-          docker run --rm -i hadolint/hadolint:latest hadolint --no-fail - < Dockerfile > reports/hadolint-report.txt || true
-          docker run --rm -i hadolint/hadolint:latest hadolint --failure-threshold warning -f sonarqube - < Dockerfile > reports/hadolint-report.json || true
-
-
+          docker run --rm -i hadolint/hadolint:latest hadolint --no-fail - < juice-shop/Dockerfile > reports/hadolint-report.txt
+          docker run --rm -i hadolint/hadolint:latest hadolint --failure-threshold warning -f sonarqube - < juice-shop/Dockerfile > reports/hadolint-report.json || true
+          
       - name: Reporting
         if: always()
         run: | 
