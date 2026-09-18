@@ -1,0 +1,32 @@
+name: Building Security Pipeline
+
+on: 
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  IMAGE_TAG: ${{ github.sha }}
+  IMAGE_TAR: ${{ github.sha }}.tar
+
+jobs:
+  build:
+    name: Build artifact
+    runs-on: ubuntu-latest
+
+  steps:
+    - name: Build docker image
+      run: |
+        SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+        echo "IMAGE_TAG=${SHORT_SHA}" >> $GITHUB_ENV
+        echo "IMAGE_TAR=${SHORT_SHA}.tar" >> $GITHUB_ENV
+
+        docker build -t my-juiceshop:${SHORT_SHA} .
+        docker save my-juiceshop:${SHORT_SHA} -o ${SHORT_SHA}.tar
+
+    - name: Upload Docker Image artifact
+      uses: actions/upload-artifact@v4
+      with: 
+        name: docker-image
+        path: ${{ env.IMAGE_TAG }}
