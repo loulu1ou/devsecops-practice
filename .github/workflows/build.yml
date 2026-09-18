@@ -42,7 +42,7 @@ jobs:
       # compare latest commit file
       - name: Run detect-secrets scan
         run: | 
-          COMMIT_BEFORE_SHA = $(git rev-parse HEAD~1 2>/dev/null || echo ${{ github.sha }})
+          COMMIT_BEFORE_SHA=$(git rev-parse HEAD~1 2>/dev/null || echo ${{ github.sha }})
           echo "Scanning changed files between ${COMMIT_BEFORE_SHA} and ${{ github.sha }}..."
 
           git diff --name-only --diff-filter=d $COMMIT_BEFORE_SHA ${{ github.sha }} | \
