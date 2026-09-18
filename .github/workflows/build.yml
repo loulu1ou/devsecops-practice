@@ -81,8 +81,8 @@ jobs:
       - name: Reporting
         if: always()
         run: | 
-          if [ -f "reports/hadolint-reports.txt" ]; then
-            cat reports/hadolint-reports.txt
+          if [ -f "reports/hadolint-report.txt" ]; then
+            cat reports/hadolint-report.txt
           fi
       
       - name: Upload Hadolint Report
@@ -90,7 +90,7 @@ jobs:
         if: always()
         with:
           name: hadoline-report
-          path: reports/hadolint-reports.txt
+          path: reports/hadolint-report.txt
 
   # Build Image
   build:
