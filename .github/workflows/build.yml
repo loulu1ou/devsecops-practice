@@ -145,9 +145,9 @@ jobs:
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v8.2.2
         with:
-          projectBaseDir: juice-shop
+          projectBaseDir: devsecops-practice
           args: >
-            -Dsonar.projectKey=juice-shop
+            -Dsonar.projectKey=devsecops-practice
             -Dsonar.organization=${{ secrets.SONAR_ORG }}
             -Dsonar.sources=.
             -Dsonar.exclusions=reports/**,node_modules/**,frontend/dist/**,**/*.spec.ts
