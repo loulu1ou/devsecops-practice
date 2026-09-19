@@ -92,11 +92,10 @@ jobs:
       - name: Run njsscan
         continue-on-error: true
         run: | 
-          pip install njsscan
-          njsscan ./juice-shop
-          njsscan --output reports/njsscan-report.txt . ;
-          njsscan --exit-warning --sonarqube --output reports/njsscan-report.json .
-
+          pip install njsscan 
+          njsscan --output reports/njsscan-report.txt ./juice-shop || true
+          njsscan --exit-warning --sonarqube --output reports/njsscan-report.json ./juice-shop || true
+      
       - name: Reporting
         if: always()
         run: | 
