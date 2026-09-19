@@ -70,6 +70,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Debug Check if files exists
+        run: |
+          echo "Current Directory"
+          ls -la
+          echo "Check Juice-Shop Directory"
+          ls -la juice-shop || echo "juice-shop folder not found!"
+          echo "Dockerfile"
+          find . -name "Dockerfile"
 
       - name: Run Hadolint and Generate Reports
         continue-on-error: true
@@ -82,6 +93,7 @@ jobs:
         continue-on-error: true
         run: | 
           pip install njsscan
+          njsscan ./juice-shop
           njsscan --output reports/njsscan-report.txt . ;
           njsscan --exit-warning --sonarqube --output reports/njsscan-report.json .
 
