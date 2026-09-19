@@ -145,7 +145,6 @@ jobs:
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v8.2.2
         with:
-          projectBaseDir: devsecops-practice
           args: >
             -Dsonar.projectKey=devsecops-practice
             -Dsonar.organization=${{ secrets.SONAR_ORG }}
