@@ -63,7 +63,7 @@ jobs:
           path: reports/detect-secrets-report.txt
 
   sast:
-    name: hadolint checking
+    name: Code & Dockerfile check
     runs-on: ubuntu-latest
     needs: [detect-secrets]
 
@@ -78,11 +78,22 @@ jobs:
           docker run --rm -i hadolint/hadolint:latest hadolint --no-fail - < juice-shop/Dockerfile > reports/hadolint-report.txt
           docker run --rm -i hadolint/hadolint:latest hadolint --failure-threshold warning -f sonarqube - < juice-shop/Dockerfile > reports/hadolint-report.json || true
 
+      - name: Run njsscan
+        continue-on-error: true
+        run: | 
+          pip install njsscan
+          njsscan --output reports/njsscan-report.txt . ;
+          njsscan --exit-warning --sonarqube --output reports/njsscan-report.json .
+
       - name: Reporting
         if: always()
         run: | 
-          if [ -f "reports/hadolint-report.txt" ]; then
+          if [ -s "reports/hadolint-report.txt" ]; then
             cat reports/hadolint-report.txt
+          fi
+
+          if [ -s "reports/njsscan-report.json" ]; then
+            cat reports/njsscan-report.json
           fi
       
       - name: Upload Hadolint Report
@@ -90,7 +101,9 @@ jobs:
         if: always()
         with:
           name: hadoline-report
-          path: reports/hadolint-report.txt
+          path: | 
+            reports/hadolint-report.txt
+            reports/njsscan-report.json
 
   # Build Image
   build:
