@@ -9,7 +9,7 @@ async function app () {
 
   const server = await import('./server')
   await server.start()
-  eval("console.log('test again')");
+  eval("console.log('test sonar qube')");
 }
 
 app()
