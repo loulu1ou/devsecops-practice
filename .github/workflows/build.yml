@@ -51,8 +51,8 @@ jobs:
       - name: Reporting
         if: always()
         run: |
-          if [ -f "reports/detect-secrets-reports.txt"]; then
-            cat reports/detect-secrets-reports.txt
+          if [ -f "reports/detect-secrets-report.txt"]; then
+            cat reports/detect-secrets-report.txt
           fi
 
       - name: Upload Detect-Secrets Report
@@ -95,6 +95,11 @@ jobs:
           pip install njsscan 
           njsscan --output reports/njsscan-report.txt ./juice-shop || true
           njsscan --exit-warning --sonarqube --output reports/njsscan-report.json ./juice-shop || true
+
+          docker run --rm -v ${{ github.workspace }}:/src opensecurity/njsscan:latest njsscan --output
+          docker run --rm -v ${{ github.workspace }}:/src opensecurity/njsscan:latest njsscan --exit-warning --sonarqube --output /src/reports/njsscan-report.json /src/juice-shop || true
+
+          sudo chown -R $USER:$USER reports/
       
       - name: Reporting
         if: always()
