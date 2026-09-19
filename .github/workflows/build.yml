@@ -89,6 +89,7 @@ jobs:
           docker run --rm -i hadolint/hadolint:latest hadolint --no-fail - < juice-shop/Dockerfile > reports/hadolint-report.txt
           docker run --rm -i hadolint/hadolint:latest hadolint --failure-threshold warning -f sonarqube - < juice-shop/Dockerfile > reports/hadolint-report.json || true
 
+      # njsscan doesn't scan TypeScript (real reason it finds nothing)
       - name: Run njsscan
         continue-on-error: true
         run: | 
@@ -107,8 +108,8 @@ jobs:
         continue-on-error: true
         run: | 
           pip install semgrep
-          semgrep scan --config auto --json -o reports/njsscan-report.json ./juice-shop || true
-          semgrep scan --config auto ./juice-shop > reports/njsscan-report.txt || true
+          semgrep scan --config auto --json -o reports/semgrep-report.json ./juice-shop || true
+          semgrep scan --config auto ./juice-shop > reports/semgrep-report.txt || true
       
       - name: Reporting
         if: always()
@@ -120,6 +121,10 @@ jobs:
           if [ -s "reports/njsscan-report.json" ]; then
             cat reports/njsscan-report.json
           fi
+
+          if [ -s "reports/semgrep-report.json" ]; then
+            cat reports/semgrep-report.json
+          fi
       
       - name: Upload Hadolint Report
         uses: actions/upload-artifact@v4
@@ -129,6 +134,7 @@ jobs:
           path: | 
             reports/hadolint-report.txt
             reports/njsscan-report.json
+            reports/semgrep-report.json
 
   # Build Image
   build:
