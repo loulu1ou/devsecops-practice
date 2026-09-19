@@ -218,7 +218,9 @@ jobs:
             --exclude "**/test/**"
             --exclude "**/*.zip"
             --exclude "**/*.exe"
+            --exclude "**/build/**"
             --disableOssIndex
+            --disableCentral
           #  --nvdApiKey ${{ secrets.NVD_API_KEY }}
       
       - name: Upload Dependency Check Report
