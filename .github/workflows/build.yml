@@ -110,7 +110,7 @@ jobs:
           pip install semgrep
           semgrep scan --config auto --json -o reports/semgrep-report.json ./juice-shop || true
           semgrep scan --config auto ./juice-shop > reports/semgrep-report.txt || true
-      
+
       - name: Reporting
         if: always()
         run: | 
@@ -135,6 +135,24 @@ jobs:
             reports/hadolint-report.txt
             reports/njsscan-report.json
             reports/semgrep-report.json
+
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v8.2.2
+        with:
+          projectBaseDir: juice-shop
+          args: >
+            -Dsonar.projectKey=juice-shop
+            -Dsonar.sources=.
+            -Dsonar.exclusions=reports/**,node_modules/**,frontend/dist/**,**/*.spec.ts
+        env: 
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_URL: ${{ secrets.SONAR_URL }}
 
   # Build Image
   build:
