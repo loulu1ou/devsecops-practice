@@ -76,7 +76,7 @@ jobs:
           mkdir -p reports
           docker run --rm -i hadolint/hadolint:latest hadolint --no-fail - < juice-shop/Dockerfile > reports/hadolint-report.txt
           docker run --rm -i hadolint/hadolint:latest hadolint --failure-threshold warning -f sonarqube - < juice-shop/Dockerfile > reports/hadolint-report.json || true
-          
+
       - name: Reporting
         if: always()
         run: | 
@@ -95,7 +95,7 @@ jobs:
   build:
     name: Build artifact
     runs-on: ubuntu-latest
-    needs: [detect-secrets]
+    needs: [sast]
     
     steps:
       - name: Checkout code
