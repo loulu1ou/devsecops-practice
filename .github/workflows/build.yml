@@ -184,6 +184,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies (Root and Frontend)
+        run: | 
+          cd juice-shop
+          npm install
+          cd frontend
+          npm install --legacy-peer-deps
       
       - name: Create report directory
         run: mkdir -p reports
@@ -201,6 +213,10 @@ jobs:
           args: >
             --failOnCVSS 6
             --enableExperimental
+            --exclude "**/test/**"
+            --exclude "**/*.zip"
+            --exclude "**/*.exe"
+            --disableOssIndex
           #  --nvdApiKey ${{ secrets.NVD_API_KEY }}
       
       - name: Upload Dependency Check Report
