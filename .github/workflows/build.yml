@@ -43,31 +43,50 @@ jobs:
       # compare latest commit file
       - name: Run detect-secrets scan
         run: | 
-          set -o pipefail
+          set -euo pipefail
 
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git fetch origin ${{ github.base_ref }} --depth=1
+          if [ "${{ github.event_name }}" = "pull_request" ]; then 
+            git fetch origin "${{ github.base_ref }}" --depth=1
             BASE_TARGET="origin/${{ github.base_ref }}"
           else
-            BASE_TARGET=$(git rev-parse HEAD~1 2>/dev/null || echo "HEAD")
+            BASE_TARGET="$(git rev-parse HEAD~1 2>/dev/null || true)"
           fi
 
-          echo "Target to compare against: $BASE_TARGET"
+          echo "========================================"
+          echo "HEAD:"
+          git rev-parse HEAD
+          echo
+          echo "BASE:"
+          echo "${BASE_TARGET:-<none>}"
+          echo "========================================"
 
-          if [ "$BASE_TARGET" = "HEAD" ]; then
-            CHANGED_FILES=$(git ls-files)
+          if [ -n "${BASE_TARGET:-}" ]; then
+            mapfile -t CHANGED_FILES < <(
+              git diff \
+                --name-only \
+                --diff-filter=d \
+                "$BASE_TARGET" HEAD
+            )
           else
-            CHANGED_FILES=$(git diff --name-only --diff-filter=d "$BASE_TARGET" HEAD)
-          fi
+            mapfile -t CHANGED_FILES < <(
+              git ls-files
+            )
+          fi 
 
           echo "Files to scan:"
-          echo "$CHANGED_FILES"
+          printf '  %s\n' "${CHANGED_FILES[@]}"
 
-          if [ -z "$CHANGED_FILES" ]; then
+          if [ "${#CHANGED_FILES[@]}" -eq 0 ]; then
             echo "No files modified. Skipping secret scan."
-          else
-            echo "$CHANGED_FILES" | xargs detect-secrets-hook --baseline .secrets.baseline 2>&1 | tee reports/detect-secrets-report.txt
+            exit 0
           fi
+
+          echo "Running detect-secrets..."
+
+          detect-secrets-hook \
+            --baseline .secrets.baseline \
+            "${CHANGED_FILES[@]}" \
+            2>&1 | tee reports/detect-secrets-report.txt
           
       - name: Upload Detect-Secrets Report
         uses: actions/upload-artifact@v4
