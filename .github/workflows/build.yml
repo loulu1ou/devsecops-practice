@@ -42,58 +42,20 @@ jobs:
 
       # compare latest commit file
       - name: Run detect-secrets scan
-        run: | 
-          set -euo pipefail
-
-          if [ "${{ github.event_name }}" = "pull_request" ]; then 
-            git fetch origin "${{ github.base_ref }}" --depth=1
-            BASE_TARGET="origin/${{ github.base_ref }}"
-          else
-            BASE_TARGET="$(git rev-parse HEAD~1 2>/dev/null || true)"
-          fi
-
-          echo "========================================"
-          echo "HEAD:"
-          git rev-parse HEAD
-          echo
-          echo "BASE:"
-          echo "${BASE_TARGET:-<none>}"
-          echo "========================================"
-
-          if [ -n "${BASE_TARGET:-}" ]; then
-            mapfile -t CHANGED_FILES < <(
-              git diff \
-                --name-only \
-                --diff-filter=d \
-                "$BASE_TARGET" HEAD
-            )
-          else
-            mapfile -t CHANGED_FILES < <(
-              git ls-files
-            )
-          fi 
-
-          echo "Files to scan:"
-          printf '  %s\n' "${CHANGED_FILES[@]}"
-
-          if [ "${#CHANGED_FILES[@]}" -eq 0 ]; then
-            echo "No files modified. Skipping secret scan."
-            exit 0
-          fi
-
-          echo "Running detect-secrets..."
+        run: |
+          mkdir -p reports
 
           detect-secrets-hook \
             --baseline .secrets.baseline \
-            "${CHANGED_FILES[@]}" \
+            $(git ls-files) \
             2>&1 | tee reports/detect-secrets-report.txt
-          
-      - name: Upload Detect-Secrets Report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: detect-secrets-report
-          path: reports/detect-secrets-report.txt
+                
+            - name: Upload Detect-Secrets Report
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                name: detect-secrets-report
+                path: reports/detect-secrets-report.txt
 
   sast:
     name: Code & Dockerfile check
