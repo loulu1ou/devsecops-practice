@@ -252,12 +252,12 @@ jobs:
       - name: Run Trivy vulnerability scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.IMAGE_TAR }}'
+          image-ref: '${{ env.IMAGE_TAG }}' 
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
-          vuln-type: 'os, library'
-          severity: 'CRITICAL, HIGH'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       - name: Generate Trivy Report
         if: always()
@@ -265,11 +265,11 @@ jobs:
         with:
           image-ref: '${{ env.IMAGE_TAG }}'
           format: 'json'
-          output: 'reports/trivy-report.json'
+          output: 'trivy-report.json'
 
       - name: Upload Trivy Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: trivy-report
-          path: reports/trivy-report.json
+          path: trivy-report.json
