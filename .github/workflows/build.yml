@@ -34,7 +34,7 @@ jobs:
 
       - name: Verify baseline and setup
         run: |
-          if[ ! -f ".secrets.baseline" ]; then
+          if [ ! -f ".secrets.baseline" ]; then
             echo "::error::Baseline file .secrets.baseline missing! Run detect-secrets scan > .secrets.baseline locally first."
             exit 1
           fi
