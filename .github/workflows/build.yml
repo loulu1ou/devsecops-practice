@@ -46,7 +46,7 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BASE_REF="${{ github.event.pull_request.base.sha }}"
           else
-            BASE_REF=$(git rev-parse HEAD~1 2>/dev/null ||)
+            BASE_REF=$(git rev-parse HEAD~1 2>/dev/null || echo "")
           fi
           echo "Scanning changed files against base: ${BASE_REF}"
 
