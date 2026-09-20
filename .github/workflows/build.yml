@@ -46,13 +46,31 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BASE_REF="${{ github.event.pull_request.base.sha }}"
           else
-            BASE_REF=$(git rev-parse HEAD~1 2>/dev/null || echo "")
+            if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ] || [ -z "${{ github.event.before }}" ]; then
+              BASE_REF=$(git rev-parse HEAD~1 2>/dev/null || echo "")
+            else
+              BASE_REF="${{ github.event.before }}""
+            fi
           fi
-          echo "Scanning changed files against base: ${BASE_REF}"
 
-          git diff --name-only --diff-filter=d $BASE_REF ${{ github.sha }} | \
-          xargs detect-secrets-hook --baseline .secrets.baseline 2>&1 | tee reports/detect-secrets-report.txt
+          echo "Base Commit: ${BASE_REF}"
+          echo "Current Commit: ${{ github.sha }}"
 
+          if [ -n "$BASE_REF" ]; then
+            CHANGED_FILES=$(git diff --name-only --diff-filter=d "$BASE_REF" "${{ github.sha }}")
+          else
+            CHANGED_FILES=$(git ls-files)
+          fi
+
+          echo "Changed files to scan:"
+          echo "$CHANGED_FILES"
+
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "$CHANGED_FILES" | xargs detect-secrets-hook --baseline .secrets.baseline 2>&1 | tee reports/detect-secrets-report.txt
+          else
+            echo "No changed files detected to scan."
+          fi
+          
       - name: Upload Detect-Secrets Report
         uses: actions/upload-artifact@v4
         if: always()
