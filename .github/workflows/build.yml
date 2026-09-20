@@ -43,32 +43,30 @@ jobs:
       # compare latest commit file
       - name: Run detect-secrets scan
         run: | 
+          set -o pipefail
+
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE_REF="${{ github.event.pull_request.base.sha }}"
+            git fetch origin ${{ github.base_ref }} --depth=1
+            BASE_TARGET="origin/${{ github.base_ref }}"
           else
-            if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ] || [ -z "${{ github.event.before }}" ]; then
-              BASE_REF=$(git rev-parse HEAD~1 2>/dev/null || echo "")
-            else
-              BASE_REF="${{ github.event.before }}""
-            fi
+            BASE_TARGET=$(git rev-parse HEAD~1 2>/dev/null || echo "HEAD")
           fi
 
-          echo "Base Commit: ${BASE_REF}"
-          echo "Current Commit: ${{ github.sha }}"
+          echo "Target to compare against: $BASE_TARGET"
 
-          if [ -n "$BASE_REF" ]; then
-            CHANGED_FILES=$(git diff --name-only --diff-filter=d "$BASE_REF" "${{ github.sha }}")
-          else
+          if [ "$BASE_TARGET" = "HEAD" ]; then
             CHANGED_FILES=$(git ls-files)
+          else
+            CHANGED_FILES=$(git diff --name-only --diff-filter=d "$BASE_TARGET" HEAD)
           fi
 
-          echo "Changed files to scan:"
+          echo "Files to scan:"
           echo "$CHANGED_FILES"
 
-          if [ -n "$CHANGED_FILES" ]; then
-            echo "$CHANGED_FILES" | xargs detect-secrets-hook --baseline .secrets.baseline 2>&1 | tee reports/detect-secrets-report.txt
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No files modified. Skipping secret scan."
           else
-            echo "No changed files detected to scan."
+            echo "$CHANGED_FILES" | xargs detect-secrets-hook --baseline .secrets.baseline 2>&1 | tee reports/detect-secrets-report.txt
           fi
           
       - name: Upload Detect-Secrets Report
